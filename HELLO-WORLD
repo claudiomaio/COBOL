@@ -1,0 +1,293 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. HELLO-WORLD.
+DATA DIVISION.
+    WORKING-STORAGE SECTION.
+        01 WS-TAG             PIC X(100).
+        
+        01 WS-TAG-CHILD        PIC X(100).
+        01 WS-TAG-CHILD-AUX    PIC X(100).
+        01 WS-TAG-CONTEUDO-AUX PIC X(100).
+        
+        01 WS-TAG-TESTE-I     PIC X(100).
+        01 WS-TAG-TESTE-F     PIC X(100).
+        01 WS-CONTEUDO        PIC X(100).
+        
+        01 WS-INDEX-I         PIC 9(3).
+        01 WS-INDEX-F         PIC 9(3).
+        01 WS-IND-BETWEEN-I   PIC 9(3).
+        01 WS-IND-BETWEEN-F   PIC 9(3).
+        01 WS-IND-CCY-I       PIC 9(3).
+        01 WS-IND-CCY-F       PIC 9(3).
+        01 WS-IND-CCY-AUX     PIC 9(3).
+        01 WS-IND-CCY-AUX-2   PIC 9(3).
+        01 WS-IND-CONTEUDO    PIC 9(3).
+        01 WS-CONT-SPACES-I   PIC 9(3).
+        01 WS-CONT-SPACES-F   PIC 9(3).
+        01 WS-CONT-SPACES-TOT PIC 9(3).
+       
+       
+        
+        01 WS-TAG-CCY         PIC X(3).
+        01 WS-RESULT-CCY      PIC X(3).
+        
+        
+        01 WS-HDR-FIELD.    
+           05 HDR-INI          PIC X(4) VALUE 'Ìë'.  
+           05 TAG-HDR-FATHER   PIC X(6) VALUES 'GrpHdr'.
+           05 HDR-FIM          PIC X(4) VALUE 'ÌÉ'.  
+           
+        01 WS-INF-FIELD.    
+           05 INF-INI          PIC X(4) VALUE 'Ìë'. 
+           05 TAG-INF-FATHER   PIC X(11) VALUES 'CdtTrfTxInf'.
+           05 INF-FIM          PIC X(4) VALUE 'ÌÉ'. 
+        
+        01 WS-CONST-I          PIC X(1) VALUE '&'.
+        01 WS-CONST-F          PIC X(1) VALUE '#'.
+        
+        01 WS-OUT-BRED         PIC X(200) VALUE SPACE.
+        
+        01 TOTAL-INSP-LENGHT   PIC 9(3) VALUE ZEROS.
+        
+        01 WS-TAG-FATHER       PIC X(20) VALUE SPACE.
+        
+        01  SW-CHECK-SPACES        PIC X(1).      
+            88  SW-CHECK-TAG-CHILD    VALUE 'C'.
+            88  SW-CHECK-TAG-BRED     VALUE 'B'.
+        
+        
+PROCEDURE DIVISION.
+
+MOVE '&'              TO WS-CONST-I.
+MOVE '#'              TO WS-CONST-F.
+
+MOVE '<IntrBkSttlmAmt Ccy="EUR">863.53</IntrBkSttlmAmt>' TO WS-TAG.                                       
+
+MOVE 1                    TO WS-INDEX-I
+                             WS-IND-BETWEEN-I 
+                             WS-IND-CCY-I.
+
+MOVE ZEROS                TO WS-INDEX-F       
+                             WS-IND-BETWEEN-F
+                             WS-IND-CCY-F
+                             WS-IND-CCY-AUX
+                             WS-CONT-SPACES-F.
+                             
+
+MOVE WS-HDR-FIELD         TO  WS-TAG-FATHER 
+
+INSPECT WS-TAG            
+    TALLYING WS-INDEX-I FOR CHARACTERS
+    BEFORE INITIAL '<'.               
+
+ADD 1 TO WS-INDEX-I.
+
+INSPECT WS-TAG(WS-INDEX-I:)                  
+    TALLYING WS-INDEX-F FOR CHARACTERS
+    BEFORE INITIAL '>'.
+
+MOVE WS-TAG(WS-INDEX-I:WS-INDEX-F)  TO WS-TAG-TESTE-I.
+
+
+DISPLAY 'WS-INDEX-I: ' WS-INDEX-I
+DISPLAY 'WS-INDEX-F: ' WS-INDEX-F
+DISPLAY '============'
+DISPLAY 'WS-TAG-TESTE-I: ' WS-TAG-TESTE-I.
+DISPLAY '============'
+
+
+
+IF WS-TAG-TESTE-I EQUAL 'GrpHdr' OR '/GrpHdr' 
+
+    MOVE WS-TAG(WS-INDEX-I:WS-INDEX-F) TO TAG-HDR-FATHER
+       
+    DISPLAY 'TAG-HDR-FATHER: ' TAG-HDR-FATHER 
+    
+ELSE
+  IF WS-TAG-TESTE-I EQUAL 'CdtTrfTxInf' OR '/CdtTrfTxInf' 
+  
+      MOVE WS-TAG(WS-INDEX-I:WS-INDEX-F) TO TAG-HDR-FATHER
+      
+  ELSE
+
+    ADD 3 TO WS-INDEX-F
+    
+    DISPLAY 'WS-INDEX-I: ' WS-INDEX-I
+    DISPLAY 'WS-INDEX-F: ' WS-INDEX-F
+    
+    DISPLAY 'WS-TAG(WS-INDEX-F:): ' WS-TAG(WS-INDEX-F:) 
+    
+    INSPECT WS-TAG(WS-INDEX-F:)                     
+        TALLYING WS-IND-BETWEEN-F FOR CHARACTERS  
+        BEFORE INITIAL '</'
+        
+    COMPUTE TOTAL-INSP-LENGHT = WS-INDEX-F + WS-IND-BETWEEN-F
+        
+    DISPLAY '=========='
+    DISPLAY 'TOTAL-INSP-LENGHT: ' TOTAL-INSP-LENGHT
+    DISPLAY 'WS-IND-BETWEEN-F: ' WS-IND-BETWEEN-F
+    DISPLAY '=========='
+        
+    IF TOTAL-INSP-LENGHT < 100
+        
+        STRING WS-TAG-TESTE-I, WS-CONST-I 
+            DELIMITED BY SPACE
+            INTO WS-TAG-CHILD
+
+        DISPLAY 'WS-TAG-CHILD: ' WS-TAG-CHILD
+    
+        INSPECT WS-TAG                
+            TALLYING WS-IND-BETWEEN-I FOR CHARACTERS  
+            BEFORE INITIAL '>'
+        
+        ADD 1 TO WS-IND-BETWEEN-I
+            
+        DISPLAY '=========='
+        DISPLAY 'WS-IND-BETWEEN-I: ' WS-IND-BETWEEN-I 
+        DISPLAY 'WS-IND-BETWEEN-F: ' WS-IND-BETWEEN-F
+        DISPLAY '=========='    
+        DISPLAY 'ENTRE <>...<>: '         
+                 WS-TAG(WS-IND-BETWEEN-I:WS-IND-BETWEEN-F)
+        DISPLAY '=========='
+         
+        MOVE WS-TAG(WS-IND-BETWEEN-I:WS-IND-BETWEEN-F) TO WS-CONTEUDO
+        
+        SET SW-CHECK-TAG-CHILD TO TRUE
+
+        PERFORM CHECK-SPACES-BETWEEN THRU F-CHECK-SPACES-BETWEEN  
+         
+        DISPLAY 'WS-TAG-CHILD: ' WS-TAG-CHILD
+        
+        PERFORM CHECK-CCY THRU F-CHECK-CCY
+
+    ELSE
+        
+      DISPLAY "Não encontra </"
+      DISPLAY "WS-INDEX-I: " WS-INDEX-I    
+      
+      MOVE SPACES            TO WS-TAG-CHILD 
+      
+      DISPLAY 'LE PROXIMO REGISTO'
+      
+    END-IF
+  END-IF        
+END-IF.
+
+STOP RUN.
+
+
+CHECK-CCY.
+
+    MOVE WS-TAG-CHILD     TO WS-TAG-CHILD-AUX.
+    
+    INSPECT WS-TAG-TESTE-I                     
+            TALLYING WS-IND-CCY-I FOR CHARACTERS  
+            BEFORE INITIAL 'Ccy='.
+            
+    DISPLAY 'WS-IND-CCY-I: ' WS-IND-CCY-I.    
+    DISPLAY 'WS-TAG-TESTE-I A PARTIR DA 19: ' 
+                                WS-TAG-TESTE-I(WS-IND-CCY-I:).
+            
+    IF WS-IND-CCY-I < 100
+            
+            MOVE WS-TAG-TESTE-I(WS-IND-CCY-I:3) TO WS-TAG-CCY
+            
+            DISPLAY 'WS-TAG-TESTE-I SO CCY: ' WS-TAG-CCY 
+            
+            COMPUTE WS-IND-CCY-AUX = WS-IND-CCY-I + 5
+            
+            INSPECT WS-TAG-TESTE-I(WS-IND-CCY-AUX:)
+                    TALLYING WS-IND-CCY-F FOR CHARACTERS  
+                    BEFORE INITIAL '"'
+                    
+            MOVE WS-TAG-TESTE-I(WS-IND-CCY-AUX:WS-IND-CCY-F) TO WS-RESULT-CCY  
+                   
+            DISPLAY 'DISPLAY SÓ EUR ENTRE ASPAS: ' WS-RESULT-CCY
+            
+            INSPECT WS-TAG-CHILD
+                    TALLYING WS-IND-CCY-AUX-2 FOR CHARACTERS  
+                    BEFORE INITIAL '&'
+            
+            DISPLAY 'TAG ANTES DO CCY: ' WS-TAG-CHILD(1:WS-IND-CCY-AUX-2)
+            
+            STRING WS-TAG-FATHER, 
+                   WS-TAG-CHILD(1:WS-IND-CCY-AUX-2), 
+                   WS-TAG-CCY, 
+                   WS-CONST-I,
+                   WS-RESULT-CCY,
+                   WS-CONST-F
+            DELIMITED BY SPACE
+            INTO WS-TAG-CHILD-AUX
+            
+            DISPLAY 'TAG CCY COMPLETA: ' WS-TAG-CHILD-AUX
+            DISPLAY 'WS-TAG-CHILD: ' WS-TAG-CHILD
+            
+            STRING WS-OUT-BRED,
+                   WS-TAG-CHILD-AUX,
+                   WS-TAG-FATHER, 
+                   WS-TAG-CHILD
+                DELIMITED BY SPACE
+                INTO WS-OUT-BRED
+            
+        DISPLAY 'WS-OUT-BRED: ' WS-OUT-BRED
+        
+        
+    ELSE
+    
+            STRING WS-OUT-BRED,
+                   WS-TAG-FATHER,
+                   WS-TAG-CHILD
+                DELIMITED BY SPACE
+                INTO WS-OUT-BRED
+        
+        DISPLAY 'WS-OUT-BRED 2: ' WS-OUT-BRED 
+        
+        
+    END-IF.
+    
+F-CHECK-CCY.
+    EXIT.
+    
+    
+CHECK-SPACES-BETWEEN.
+    
+    INSPECT WS-CONTEUDO
+        TALLYING WS-IND-CONTEUDO FOR CHARACTERS  
+        BEFORE INITIAL SPACE
+    
+    ADD 1 TO WS-IND-CONTEUDO
+    
+    DISPLAY 'WS-IND-CONTEUDO: ' WS-IND-CONTEUDO
+    
+    COMPUTE WS-CONT-SPACES-I = WS-IND-BETWEEN-I + WS-IND-CONTEUDO
+    
+    INSPECT WS-TAG(WS-CONT-SPACES-I:)
+        TALLYING WS-CONT-SPACES-F FOR CHARACTERS  
+        BEFORE INITIAL '</'
+        
+    COMPUTE WS-CONT-SPACES-TOT = WS-CONT-SPACES-I + WS-CONT-SPACES-F
+    
+    DISPLAY 'WS-CONT-SPACES-I: ' WS-CONT-SPACES-TOT
+    
+    IF WS-CONTEUDO(WS-IND-CONTEUDO:) NOT EQUAL SPACES
+    OR WS-CONT-SPACES-I < 100
+        
+        INSPECT WS-TAG(WS-IND-BETWEEN-I:WS-IND-BETWEEN-F) 
+        REPLACING ALL SPACE BY '*'
+        
+            STRING WS-TAG-CHILD, 
+                   WS-TAG(WS-IND-BETWEEN-I:WS-IND-BETWEEN-F), 
+                   WS-CONST-F   
+            DELIMITED BY SPACE
+            INTO WS-TAG-CHILD
+            
+    ELSE
+        STRING WS-TAG-CHILD, 
+               WS-TAG(WS-IND-BETWEEN-I:WS-IND-BETWEEN-F), 
+               WS-CONST-F   
+            DELIMITED BY SPACE
+            INTO WS-TAG-CHILD
+    END-IF.
+
+
+F-CHECK-SPACES-BETWEEN.
+    EXIT.
